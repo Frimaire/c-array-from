@@ -2,9 +2,9 @@
 
 == 用法 ==
 
-<syntaxhighlight lang='c'>
+<source lang='c'>
 ssize_t array_from(void **array, bool (*generator)(void *item, size_t index, void *param), size_t item_size, void *param);
-</syntaxhighlight>
+</source>
 
 '''array_from''' 通过调用 <code>malloc</code> 分配初始内存缓冲区，然后通过指向预分配缓冲区的 <code>item</code> 参数调用 <code>generator</code>。该函数会持续调用迭代器函数 <code>generator</code> 直到其返回 <code>true</code>。
 
@@ -37,7 +37,7 @@ ssize_t array_from(void **array, bool (*generator)(void *item, size_t index, voi
 
 === 示例 ===
 
-<syntaxhighlight lang='c'>
+<source lang='c'>
 #include <stdio.h>
 #include "array-from.h"
 
@@ -56,6 +56,6 @@ int main() {
     free(arr);
     return 0;
 }
-</syntaxhighlight>
+</source>
 
 更多示例请参见 test.c 文件。

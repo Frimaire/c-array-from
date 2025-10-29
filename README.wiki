@@ -2,9 +2,9 @@
 
 == Usage ==
 
-<syntaxhighlight lang='c'>
+<source lang='c'>
 ssize_t array_from(void **array, bool (*generator)(void *item, size_t index, void *param), size_t item_size, void *param);
-</syntaxhighlight>
+</source>
 
 '''array_from''' allocates the initial buffer for you by calling <code>malloc</code>. Then, it calls <code>generator</code> with the parameter <code>item</code> that points to the pre-allocated buffer. This function repeatedly calls <code>generator</code> until it returns <code>true</code>.
 
@@ -38,7 +38,7 @@ If <code>generator</code> returns true during the first call, the length of the 
 
 === Example ===
 
-<syntaxhighlight lang='c'>
+<source lang='c'>
 #include <stdio.h>
 #include "array-from.h"
 
@@ -57,6 +57,6 @@ int main() {
     free(arr);
     return 0;
 }
-</syntaxhighlight>
+</source>
 
 See test.c for more examples.
