@@ -1,0 +1,61 @@
+'''array_from''' 是一个用纯C编写的轻量级、易用的函数，通过类似脚本语言的迭代回调机制创建数组。
+
+== 用法 ==
+
+<syntaxhighlight lang='c'>
+ssize_t array_from(void **array, bool (*generator)(void *item, size_t index, void *param), size_t item_size, void *param);
+</syntaxhighlight>
+
+'''array_from''' 通过调用 <code>malloc</code> 分配初始内存缓冲区，然后通过指向预分配缓冲区的 <code>item</code> 参数调用 <code>generator</code>。该函数会持续调用迭代器函数 <code>generator</code> 直到其返回 <code>true</code>。
+
+当没有更多元素需要添加时，<code>generator</code> 须返回 true 来终止迭代。如果 <code>generator</code> 返回 true，本次调用产生的 <code>item</code> 将'''不会'''存入新数组。
+
+'''array_from''' 会将新数组的指针存入参数 <code>array</code>，并返回数组长度。
+
+由于返回的数组是通过 <code>malloc</code> 分配的，不再使用时应当使用 <code>free</code> 释放内存。
+
+如果首次调用时 <code>generator</code> 即返回 true，数组长度将为0，但 '''array_from''' 仍会分配至少1字节的内存，因此仍需调用 <code>free</code> 释放。
+
+=== 参数说明 ===
+
+* <code>array</code> - 指向指针变量的指针（二级指针），用于接收结果数组地址
+* <code>generator</code> - 迭代器函数指针
+* <code>item_size</code> - 单个元素的字节大小（必须非零）
+* <code>param</code> - 透传给回调函数的用户自定义参数
+
+=== 回调函数参数 ===
+
+* <code>item</code> - 指向当前元素缓冲区的指针供回调函数写入
+* <code>index</code> - 当前元素的从0开始的索引
+* <code>param</code> - 来自 array_from 的透传参数
+
+当 <code>generator</code> 返回的布尔值 <code>done</code> 为 true 时，当前元素会被丢弃并终止迭代。
+
+=== 返回值 ===
+* ≥0 ：成功创建数组的长度（元素个数）
+* -1 ：内存分配失败
+
+=== 示例 ===
+
+<syntaxhighlight lang='c'>
+#include <stdio.h>
+#include "array-from.h"
+
+bool int_generator(void *item, size_t index, void *param) {
+    int *val = (int*)item;
+    *val = index * 10;
+    // 50不会出现在新数组中
+    return (index >= 5);
+}
+
+int main() {
+    int *arr;
+    int len = array_from((void**)&arr, int_generator, sizeof(int), NULL);
+    // arr now contains [0, 10, 20, 30, 40]
+    printf("%d\n", len); // 5
+    free(arr);
+    return 0;
+}
+</syntaxhighlight>
+
+更多示例请参见 test.c 文件。

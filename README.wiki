@@ -1,0 +1,62 @@
+'''array_from''' is a lightweight, easy-to-use function written in pure C that creates an array through an iteration callback similar to scripting languages.
+
+== Usage ==
+
+<syntaxhighlight lang='c'>
+ssize_t array_from(void **array, bool (*generator)(void *item, size_t index, void *param), size_t item_size, void *param);
+</syntaxhighlight>
+
+'''array_from''' allocates the initial buffer for you by calling <code>malloc</code>. Then, it calls <code>generator</code> with the parameter <code>item</code> that points to the pre-allocated buffer. This function repeatedly calls <code>generator</code> until it returns <code>true</code>.
+
+When there are no more items, <code>generator</code> must return true to terminate the iteration. If <code>generator</code> returns true, the <code>item</code> at this call will '''not''' be stored in the newly created array.
+
+'''array_from''' sets the pointer of the newly created array to the position of parameter <code>array</code>, and returns the length of the array.
+
+Since the array is allocated by <code>malloc</code>, it should be passed to <code>free</code> if it is no longer useful.
+
+If <code>generator</code> returns true during the first call, the length of the array is zero. However, '''array_from''' allocates at least 1 byte of memory in this case. So, the array still needs to be freed.
+
+=== Parameters ===
+
+* <code>array</code> - pointer to the pointer variable that <code>array_from</code> will store the address of the result array into
+* <code>generator</code> - pointer to the callback
+* <code>item_size</code> - size of the item in bytes, must be >0
+* <code>param</code> - an additional argument that is passed through to the callback
+
+=== Parameters of the callback ===
+
+* <code>item</code> - a pointer to the buffer of the new item where <code>generator</code> stores the item
+* <code>index</code> - the index of the new item
+* <code>param</code> - the <code>param</code> argument
+
+<code>generator</code> returns a boolean value <code>done</code>. If <code>done</code> is true, the final item will be discarded and <code>array_from</code> returns.
+
+=== Return value ===
+
+* >=0 - the length of the new array, or
+* -1 - memory allocation failure
+
+=== Example ===
+
+<syntaxhighlight lang='c'>
+#include <stdio.h>
+#include "array-from.h"
+
+bool int_generator(void *item, size_t index, void *param) {
+    int *val = (int*)item;
+    *val = index * 10;
+    // 50 will not appear in the newly created array
+    return (index >= 5);
+}
+
+int main() {
+    int *arr;
+    int len = array_from((void**)&arr, int_generator, sizeof(int), NULL);
+    // arr now contains [0, 10, 20, 30, 40]
+    printf("%d\n", len); // 5
+    free(arr);
+    return 0;
+}
+</syntaxhighlight>
+
+See test.c for more examples.
